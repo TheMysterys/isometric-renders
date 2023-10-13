@@ -22,6 +22,7 @@ import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.*;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
@@ -268,6 +269,19 @@ public class IsorenderCommand {
 
         if (client.crosshairTarget.getType() != HitResult.Type.ENTITY) {
             Translate.commandError(context, "no_entity");
+            return 0;
+        }
+
+        if (((EntityHitResult) client.crosshairTarget).getEntity().getType() == EntityType.PLAYER) {
+            final var gameProfile = ((PlayerEntity) ((EntityHitResult) client.crosshairTarget).getEntity()).getGameProfile();
+            final var player = EntityComponent.createRenderablePlayer(gameProfile);
+            player.readNbt(
+                    ((EntityHitResult) client.crosshairTarget).getEntity().writeNbt(new NbtCompound())
+            );
+
+            ScreenScheduler.schedule(new RenderScreen(
+                    new EntityRenderable(player)
+            ));
             return 0;
         }
 
